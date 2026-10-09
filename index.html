@@ -1,76 +1,104 @@
 <!DOCTYPE html>
-<html lang="en-GB">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Task Flow - Internship Assessment</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Kanban Lite: a simple task board to organise tasks into To Do, In Progress and Completed.">
+  <title>Kanban Lite</title>
 </head>
 <body>
-  <div class="app-container">
-    <header class="app-header">
-      <h1>Task Flow Board</h1>
-      <p>Organise and track your project tasks efficiently.</p>
-    </header>
 
-    <!-- Controls & Creation Section -->
-    <section class="controls-section">
-      <form id="task-form" class="task-form">
-        <input type="text" id="task-title" placeholder="Task title..." required />
-        <select id="task-category" required>
-          <option value="" disabled selected>Select Category</option>
-          <option value="Development">Development</option>
-          <option value="Design">Design</option>
-          <option value="Marketing">Marketing</option>
-        </select>
-        <select id="task-priority" required>
-          <option value="" disabled selected>Select Priority</option>
-          <option value="Low">Low Priority</option>
-          <option value="Medium">Medium Priority</option>
-          <option value="High">High Priority</option>
-        </select>
-        <button type="submit" class="btn btn-primary">Add Task</button>
-      </form>
+  <!-- Header: app name, theme switch and the main "New task" button -->
+  <header>
+    <h1>Kanban Lite</h1>
 
-      <div class="filter-bar">
-        <input type="text" id="search-input" placeholder="Search tasks..." />
-        <select id="category-filter">
-          <option value="All">All Categories</option>
-          <option value="Development">Development</option>
-          <option value="Design">Design</option>
-          <option value="Marketing">Marketing</option>
-        </select>
-      </div>
+    <button type="button" id="theme-toggle" aria-pressed="false">Dark mode</button>
+
+    <!-- Adds to "To Do" by default -->
+    <button type="button" id="new-task-btn">+ New task</button>
+  </header>
+
+  <main>
+
+    <!-- Search and filter bar -->
+    <section id="filters" aria-label="Search and filter tasks">
+      <label for="search-input">Search</label>
+      <input type="search" id="search-input" placeholder="Search by title">
+
+      <label for="category-filter">Category</label>
+      <select id="category-filter">
+        <option value="all">All categories</option>
+        <option value="development">Development</option>
+        <option value="design">Design</option>
+        <option value="marketing">Marketing</option>
+      </select>
     </section>
 
-    <!-- Kanban Columns -->
-    <main class="board-container">
-      <div class="column" data-status="todo">
-        <div class="column-header">
-          <h2>To Do</h2>
-          <span class="task-count" id="count-todo">0</span>
-        </div>
-        <div class="task-list" id="list-todo"></div>
-      </div>
+    <!-- The board: three columns. Each "+" adds a task straight into that column. -->
+    <section id="board" aria-label="Task board">
 
-      <div class="column" data-status="in-progress">
-        <div class="column-header">
-          <h2>In Progress</h2>
-          <span class="task-count" id="count-in-progress">0</span>
-        </div>
-        <div class="task-list" id="list-in-progress"></div>
-      </div>
+      <section class="column" data-status="todo" aria-labelledby="todo-heading">
+        <h2 id="todo-heading">To Do</h2>
+        <button type="button" class="add-to-column" data-status="todo" aria-label="Add task to To Do">+</button>
+        <ul class="task-list" id="todo-list"></ul>
+      </section>
 
-      <div class="column" data-status="completed">
-        <div class="column-header">
-          <h2>Completed</h2>
-          <span class="task-count" id="count-completed">0</span>
-        </div>
-        <div class="task-list" id="list-completed"></div>
-      </div>
-    </main>
-  </div>
+      <section class="column" data-status="in-progress" aria-labelledby="in-progress-heading">
+        <h2 id="in-progress-heading">In Progress</h2>
+        <button type="button" class="add-to-column" data-status="in-progress" aria-label="Add task to In Progress">+</button>
+        <ul class="task-list" id="in-progress-list"></ul>
+      </section>
 
-  <script src="script.js"></script>
+      <section class="column" data-status="completed" aria-labelledby="completed-heading">
+        <h2 id="completed-heading">Completed</h2>
+        <button type="button" class="add-to-column" data-status="completed" aria-label="Add task to Completed">+</button>
+        <ul class="task-list" id="completed-list"></ul>
+      </section>
+
+    </section>
+  </main>
+
+  <!--
+    Add-task form, shown as a popup.
+    A <dialog> stays hidden until JavaScript opens it.
+    To preview it now, temporarily add the "open" attribute: <dialog id="task-dialog" open>
+  -->
+  <dialog id="task-dialog" aria-labelledby="task-form-heading">
+    <form id="task-form">
+      <h2 id="task-form-heading">New task</h2>
+
+      <label for="task-title">Title</label>
+      <input type="text" id="task-title" name="title" required maxlength="80">
+
+      <label for="task-description">Description</label>
+      <textarea id="task-description" name="description" rows="3" maxlength="300"></textarea>
+
+      <label for="task-category">Category</label>
+      <select id="task-category" name="category">
+        <option value="development">Development</option>
+        <option value="design">Design</option>
+        <option value="marketing">Marketing</option>
+      </select>
+
+      <label for="task-priority">Priority</label>
+      <select id="task-priority" name="priority">
+        <option value="low">Low</option>
+        <option value="medium" selected>Medium</option>
+        <option value="high">High</option>
+      </select>
+
+      <!-- Defaults to To Do. A column's "+" button will preselect its own column. -->
+      <label for="task-status">Column</label>
+      <select id="task-status" name="status">
+        <option value="todo" selected>To Do</option>
+        <option value="in-progress">In Progress</option>
+        <option value="completed">Completed</option>
+      </select>
+
+      <button type="button" id="cancel-task-btn">Cancel</button>
+      <button type="submit">Add task</button>
+    </form>
+  </dialog>
+
 </body>
 </html>
