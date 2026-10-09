@@ -17,6 +17,7 @@ const priorityInput = document.getElementById("task-priority");
 const statusInput = document.getElementById("task-status");
 const searchInput = document.getElementById("search-input");
 const categoryFilter = document.getElementById("category-filter");
+const themeToggle = document.getElementById("theme-toggle");
 
 //Open the popup with the given column selected
 function openTaskDialog(column) {
@@ -83,6 +84,16 @@ function moveTask(id, step) {
     renderTasks();
 }
 
+//Put a task straight into a column, used by drag and drop
+function moveTaskTo(id, status) {
+    const task = tasks.find(function (t) {
+        return t.id === id;
+    });
+    task.status = status;
+    saveTasks();
+    renderTasks();
+}
+
 //Remove a task after asking first
 function deleteTask(id) {
     if (!confirm("Delete this task?")) {
@@ -94,6 +105,30 @@ function deleteTask(id) {
     saveTasks();
     renderTasks();
 }
+
+//Each column accepts dropped cards
+document.querySelectorAll(".column").forEach(function (column) {
+    column.addEventListener("dragover", function (event) {
+        //Without this the browser does not allow dropping here
+        event.preventDefault();
+        column.classList.add("drag-over");
+    });
+
+    column.addEventListener("dragleave", function (event) {
+        //Only when the mouse really leaves the column, not a card inside it
+        if (!column.contains(event.relatedTarget)) {
+            column.classList.remove("drag-over");
+        }
+    });
+
+    column.addEventListener("drop", function (event) {
+        event.preventDefault();
+        column.classList.remove("drag-over");
+        //The id was saved as text in dragstart
+        const id = Number(event.dataTransfer.getData("text/plain"));
+        moveTaskTo(id, column.dataset.status);
+    });
+});
 
 //Redraw the board whenever the search or category changes
 searchInput.addEventListener("input", renderTasks);
@@ -144,6 +179,16 @@ function renderTasks() {
 function createTaskCard(task) {
     const card = document.createElement("li");
     card.className = "task-card priority-" + task.priority;
+
+    //Cards can be dragged to another column
+    card.draggable = true;
+    card.addEventListener("dragstart", function (event) {
+        event.dataTransfer.setData("text/plain", task.id);
+        card.classList.add("dragging");
+    });
+    card.addEventListener("dragend", function () {
+        card.classList.remove("dragging");
+    });
 
     //textContent so html typed by the user is shown as plain text
     const title = document.createElement("h3");
@@ -210,6 +255,26 @@ function makeButton(text, label, onClick) {
     button.title = label;
     button.addEventListener("click", onClick);
     return button;
+}
+
+//Switch between light and dark mode
+function setDarkMode(isDark) {
+    document.body.classList.toggle("dark", isDark);
+    themeToggle.textContent = isDark ? "Light mode" : "Dark mode";
+}
+
+themeToggle.addEventListener("click", function () {
+    const isDark = !document.body.classList.contains("dark");
+    setDarkMode(isDark);
+    localStorage.setItem("kanban-lite-theme", isDark ? "dark" : "light");
+});
+
+//Use the saved choice, or the computer's setting the first time
+const savedTheme = localStorage.getItem("kanban-lite-theme");
+if (savedTheme) {
+    setDarkMode(savedTheme === "dark");
+} else {
+    setDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
 }
 
 //Show the saved tasks when the page opens
