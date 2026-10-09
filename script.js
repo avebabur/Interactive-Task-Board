@@ -128,6 +128,16 @@ function renderTasks() {
         const list = document.getElementById(task.status + "-list");
         list.appendChild(createTaskCard(task));
     });
+
+    //Show a short message in columns that have no cards
+    document.querySelectorAll(".task-list").forEach(function (list) {
+        if (list.children.length === 0) {
+            const message = document.createElement("li");
+            message.className = "empty-message";
+            message.textContent = "No tasks";
+            list.appendChild(message);
+        }
+    });
 }
 
 //Build the card for one task
@@ -150,6 +160,16 @@ function createTaskCard(task) {
     category.className = "task-category";
     category.textContent = task.category;
     card.appendChild(category);
+
+    //Priority as text too, not only as a colour
+    const priority = document.createElement("span");
+    priority.className = "task-priority";
+    //"high" becomes "High priority"
+    priority.textContent =
+        task.priority.charAt(0).toUpperCase() +
+        task.priority.slice(1) +
+        " priority";
+    card.appendChild(priority);
 
     //Arrow and delete buttons
     const actions = document.createElement("div");
