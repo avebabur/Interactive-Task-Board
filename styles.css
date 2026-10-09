@@ -42,10 +42,11 @@ header h1 {
     background-color: white;
 }
 
+/*Coral is the opposite of the teal background (170 + 180 = 350 on the colour wheel)*/
 #new-task-btn {
-    background-color: #333;
-    border-color: #333;
-    color: white;
+    background-color: #ff526f;
+    border-color: #ff526f;
+    color: #222;
 }
 
 /*Search and filter bar*/
@@ -79,7 +80,7 @@ header h1 {
     min-height: 300px;
     padding: 10px;
     border-radius: 6px;
-    /* page background mixed with 30% black (same as my color-mix from earlier project) */
+    /*Page background mixed with 30% black*/
     background-color: rgb(155, 160, 159);
 }
 
@@ -121,6 +122,12 @@ header h1 {
 .task-card p {
     margin: 0 0 8px 0;
     color: #555;
+}
+
+.task-category {
+    font-size: 12px;
+    color: #555;
+    text-transform: capitalize;
 }
 
 .priority-high {
@@ -183,7 +190,7 @@ body.dark {
 }
 
 body.dark .column {
-    /* dark page background mixed with 30% white */
+    /*Dark page background mixed with 30% white*/
     background-color: rgb(96, 95, 100);
 }
 
@@ -193,7 +200,8 @@ body.dark dialog {
     color: #eee;
 }
 
-body.dark .task-card p {
+body.dark .task-card p,
+body.dark .task-category {
     color: #bbb;
 }
 

@@ -11,7 +11,7 @@
         <link rel="stylesheet" href="styles.css" />
     </head>
     <body>
-        <!-- Header: app name, theme switch and the main "New task" button -->
+        <!--Header-->
         <header>
             <h1>Kanban Lite</h1>
 
@@ -19,12 +19,12 @@
                 Dark mode
             </button>
 
-            <!-- Adds to "To Do" by default -->
+            <!--Adds to To Do by default-->
             <button type="button" id="new-task-btn">+ New task</button>
         </header>
 
         <main>
-            <!-- Search and filter bar -->
+            <!--Search and filter bar-->
             <section id="filters" aria-label="Search and filter tasks">
                 <label for="search-input">Search</label>
                 <input
@@ -42,7 +42,7 @@
                 </select>
             </section>
 
-            <!-- The board: three columns. Each "+" adds a task straight into that column. -->
+            <!--Board with three columns, each + adds a task to its own column-->
             <section id="board" aria-label="Task board">
                 <section
                     class="column"
@@ -97,11 +97,7 @@
             </section>
         </main>
 
-        <!--
-    Add-task form, shown as a popup.
-    A <dialog> stays hidden until JavaScript opens it.
-    To preview it now, temporarily add the "open" attribute: <dialog id="task-dialog" open>
-  -->
+        <!--Add task popup, script.js opens it-->
         <dialog id="task-dialog" aria-labelledby="task-form-heading">
             <form id="task-form">
                 <h2 id="task-form-heading">New task</h2>
@@ -137,7 +133,7 @@
                     <option value="high">High</option>
                 </select>
 
-                <!-- Defaults to To Do. A column's "+" button will preselect its own column. -->
+                <!--Column + buttons select their own column here-->
                 <label for="task-status">Column</label>
                 <select id="task-status" name="status">
                     <option value="todo" selected>To Do</option>
@@ -149,5 +145,7 @@
                 <button type="submit">Add task</button>
             </form>
         </dialog>
+
+        <script src="script.js"></script>
     </body>
 </html>

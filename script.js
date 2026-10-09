@@ -1,129 +1,99 @@
-// Application State
-let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+//All tasks are kept in this array
+let tasks = [];
 
-// DOM Element References
-const taskForm = document.getElementById('task-form');
-const taskTitle = document.getElementById('task-title');
-const taskCategory = document.getElementById('task-category');
-const taskPriority = document.getElementById('task-priority');
-const searchInput = document.getElementById('search-input');
-const categoryFilter = document.getElementById('category-filter');
+//Elements from the page
+const newTaskBtn = document.getElementById("new-task-btn");
+const addToColumnBtns = document.querySelectorAll(".add-to-column");
+const taskDialog = document.getElementById("task-dialog");
+const taskForm = document.getElementById("task-form");
+const cancelTaskBtn = document.getElementById("cancel-task-btn");
+const titleInput = document.getElementById("task-title");
+const descriptionInput = document.getElementById("task-description");
+const categoryInput = document.getElementById("task-category");
+const priorityInput = document.getElementById("task-priority");
+const statusInput = document.getElementById("task-status");
 
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-  renderTasks();
-  
-  taskForm.addEventListener('submit', handleAddTask);
-  searchInput.addEventListener('input', renderTasks);
-  categoryFilter.addEventListener('change', renderTasks);
+//Open the popup with the given column selected
+function openTaskDialog(column) {
+    taskForm.reset();
+    statusInput.value = column;
+    taskDialog.showModal();
+}
+
+//+ New task adds to To Do
+newTaskBtn.addEventListener("click", function () {
+    openTaskDialog("todo");
 });
 
-// Save tasks to localStorage
-function saveTasks() {
-  localStorage.setItem('tasks', JSON.stringify(tasks));
-}
+//Each column + adds to its own column
+addToColumnBtns.forEach(function (button) {
+    button.addEventListener("click", function () {
+        openTaskDialog(button.dataset.status);
+    });
+});
 
-// Add a new task
-function handleAddTask(e) {
-  e.preventDefault();
+cancelTaskBtn.addEventListener("click", function () {
+    taskDialog.close();
+});
 
-  const newTask = {
-    id: Date.now().toString(),
-    title: taskTitle.value.trim(),
-    category: taskCategory.value,
-    priority: taskPriority.value,
-    status: 'todo'
-  };
+//Make a new task from the form
+taskForm.addEventListener("submit", function (event) {
+    event.preventDefault();
 
-  tasks.push(newTask);
-  saveTasks();
-  renderTasks();
-
-  // Reset form fields
-  taskForm.reset();
-}
-
-// Update status of a task
-function updateTaskStatus(id, newStatus) {
-  tasks = tasks.map(task => 
-    task.id === id ? { ...task, status: newStatus } : task
-  );
-  saveTasks();
-  renderTasks();
-}
-
-// Delete a task
-function deleteTask(id) {
-  tasks = tasks.filter(task => task.id !== id);
-  saveTasks();
-  renderTasks();
-}
-
-// Render tasks onto the board based on status and filters
-function renderTasks() {
-  const searchTerm = searchInput.value.toLowerCase();
-  const selectedCategory = categoryFilter.value;
-
-  // Clear lists
-  const lists = {
-    'todo': document.getElementById('list-todo'),
-    'in-progress': document.getElementById('list-in-progress'),
-    'completed': document.getElementById('list-completed')
-  };
-
-  Object.values(lists).forEach(list => list.innerHTML = '');
-
-  // Track counts
-  const counts = { 'todo': 0, 'in-progress': 0, 'completed': 0 };
-
-  // Filter tasks
-  const filteredTasks = tasks.filter(task => {
-    const matchesSearch = task.title.toLowerCase().includes(searchTerm);
-    const matchesCategory = selectedCategory === 'All' || task.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  // Append elements
-  filteredTasks.forEach(task => {
-    counts[task.status]++;
-    const cardHtml = createTaskCard(task);
-    if (lists[task.status]) {
-      lists[task.status].appendChild(cardHtml);
+    //Stop titles that are only spaces
+    const title = titleInput.value.trim();
+    if (title === "") {
+        titleInput.focus();
+        return;
     }
-  });
 
-  // Update counts in DOM
-  document.getElementById('count-todo').textContent = counts['todo'];
-  document.getElementById('count-in-progress').textContent = counts['in-progress'];
-  document.getElementById('count-completed').textContent = counts['completed'];
+    const task = {
+        id: Date.now(),
+        title: title,
+        description: descriptionInput.value.trim(),
+        category: categoryInput.value,
+        priority: priorityInput.value,
+        status: statusInput.value,
+    };
+
+    tasks.push(task);
+    renderTasks();
+    taskDialog.close();
+});
+
+//Empty the columns and draw every task again
+function renderTasks() {
+    document.querySelectorAll(".task-list").forEach(function (list) {
+        list.innerHTML = "";
+    });
+
+    tasks.forEach(function (task) {
+        //Status "todo" goes in "todo-list" and so on
+        const list = document.getElementById(task.status + "-list");
+        list.appendChild(createTaskCard(task));
+    });
 }
 
-// Helper: Create Task DOM element
+//Build the card for one task
 function createTaskCard(task) {
-  const card = document.createElement('div');
-  card.className = 'task-card';
-  card.setAttribute('data-priority', task.priority);
+    const card = document.createElement("li");
+    card.className = "task-card priority-" + task.priority;
 
-  card.innerHTML = `
-    <div class="task-card-title">${escapeHtml(task.title)}</div>
-    <div class="task-meta">
-      <span>${task.category}</span>
-      <span>${task.priority} Priority</span>
-    </div>
-    <div class="task-actions">
-      <select onchange="updateTaskStatus('${task.id}', this.value)">
-        <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>To Do</option>
-        <option value="in-progress" ${task.status === 'in-progress' ? 'selected' : ''}>In Progress</option>
-        <option value="completed" ${task.status === 'completed' ? 'selected' : ''}>Completed</option>
-      </select>
-      <button class="btn-danger" onclick="deleteTask('${task.id}')">Delete</button>
-    </div>
-  `;
+    //textContent so html typed by the user is shown as plain text
+    const title = document.createElement("h3");
+    title.textContent = task.title;
+    card.appendChild(title);
 
-  return card;
-}
+    if (task.description !== "") {
+        const description = document.createElement("p");
+        description.textContent = task.description;
+        card.appendChild(description);
+    }
 
-// Security: Helper function to escape basic HTML injection
-function escapeHtml(str) {
-  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const category = document.createElement("span");
+    category.className = "task-category";
+    category.textContent = task.category;
+    card.appendChild(category);
+
+    return card;
 }
