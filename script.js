@@ -15,6 +15,8 @@ const descriptionInput = document.getElementById("task-description");
 const categoryInput = document.getElementById("task-category");
 const priorityInput = document.getElementById("task-priority");
 const statusInput = document.getElementById("task-status");
+const searchInput = document.getElementById("search-input");
+const categoryFilter = document.getElementById("category-filter");
 
 //Open the popup with the given column selected
 function openTaskDialog(column) {
@@ -93,6 +95,24 @@ function deleteTask(id) {
     renderTasks();
 }
 
+//Redraw the board whenever the search or category changes
+searchInput.addEventListener("input", renderTasks);
+categoryFilter.addEventListener("change", renderTasks);
+
+//Check a task against the search box and the category dropdown
+function matchesFilters(task) {
+    //Lowercase both so "Logo" and "logo" match
+    const search = searchInput.value.trim().toLowerCase();
+    if (!task.title.toLowerCase().includes(search)) {
+        return false;
+    }
+    const category = categoryFilter.value;
+    if (category !== "all" && task.category !== category) {
+        return false;
+    }
+    return true;
+}
+
 //Empty the columns and draw every task again
 function renderTasks() {
     document.querySelectorAll(".task-list").forEach(function (list) {
@@ -100,6 +120,10 @@ function renderTasks() {
     });
 
     tasks.forEach(function (task) {
+        //Hidden tasks are only skipped here, they stay saved
+        if (!matchesFilters(task)) {
+            return;
+        }
         //Status "todo" goes in "todo-list" and so on
         const list = document.getElementById(task.status + "-list");
         list.appendChild(createTaskCard(task));
