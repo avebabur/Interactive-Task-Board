@@ -1,5 +1,8 @@
-//All tasks are kept in this array
-let tasks = [];
+//All tasks are kept in this array, saved ones are loaded from localStorage
+let tasks = JSON.parse(localStorage.getItem("kanban-lite-tasks")) || [];
+
+//Column order from left to right, used by the arrow buttons
+const columns = ["todo", "in-progress", "completed"];
 
 //Elements from the page
 const newTaskBtn = document.getElementById("new-task-btn");
@@ -57,9 +60,38 @@ taskForm.addEventListener("submit", function (event) {
     };
 
     tasks.push(task);
+    saveTasks();
     renderTasks();
     taskDialog.close();
 });
+
+//localStorage can only keep text, so the array is turned into JSON text
+function saveTasks() {
+    localStorage.setItem("kanban-lite-tasks", JSON.stringify(tasks));
+}
+
+//Move a task one column to the left (-1) or right (+1)
+function moveTask(id, step) {
+    const task = tasks.find(function (t) {
+        return t.id === id;
+    });
+    const position = columns.indexOf(task.status);
+    task.status = columns[position + step];
+    saveTasks();
+    renderTasks();
+}
+
+//Remove a task after asking first
+function deleteTask(id) {
+    if (!confirm("Delete this task?")) {
+        return;
+    }
+    tasks = tasks.filter(function (t) {
+        return t.id !== id;
+    });
+    saveTasks();
+    renderTasks();
+}
 
 //Empty the columns and draw every task again
 function renderTasks() {
@@ -95,5 +127,46 @@ function createTaskCard(task) {
     category.textContent = task.category;
     card.appendChild(category);
 
+    //Arrow and delete buttons
+    const actions = document.createElement("div");
+    actions.className = "task-actions";
+    const position = columns.indexOf(task.status);
+
+    const leftBtn = makeButton("←", "Move left", function () {
+        moveTask(task.id, -1);
+    });
+    //Nothing is left of the first column
+    leftBtn.disabled = position === 0;
+    actions.appendChild(leftBtn);
+
+    const rightBtn = makeButton("→", "Move right", function () {
+        moveTask(task.id, 1);
+    });
+    //Nothing is right of the last column
+    rightBtn.disabled = position === columns.length - 1;
+    actions.appendChild(rightBtn);
+
+    const deleteBtn = makeButton("Delete", "Delete task", function () {
+        deleteTask(task.id);
+    });
+    deleteBtn.className = "delete-btn";
+    actions.appendChild(deleteBtn);
+
+    card.appendChild(actions);
+
     return card;
 }
+
+//Make a small button, label is read out by screen readers
+function makeButton(text, label, onClick) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = text;
+    button.setAttribute("aria-label", label);
+    button.title = label;
+    button.addEventListener("click", onClick);
+    return button;
+}
+
+//Show the saved tasks when the page opens
+renderTasks();

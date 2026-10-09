@@ -130,6 +130,30 @@ header h1 {
     text-transform: capitalize;
 }
 
+/*Arrow and delete buttons on a card*/
+.task-actions {
+    display: flex;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.task-actions button {
+    padding: 3px 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: white;
+}
+
+.task-actions button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+/*Pushes delete to the right side*/
+.delete-btn {
+    margin-left: auto;
+}
+
 .priority-high {
     border-left-color: #ff0000;
 }
